@@ -1,15 +1,17 @@
 import fs from "fs";
+import path from "path";
 import argv from "minimist";
 import Fuse from "fuse.js";
 import { randomizeTeams } from "./randomizeTeams.js";
 import { helpMenu } from "./helpMenu.js";
 import { updatePath } from "./updatePath.js";
 import { printTeams } from "./printTeams.js";
+import { getDir } from "./getDir.js";
 
 (async function () {
   let players;
   try {
-    const configPath = fs.readFileSync("./.path.txt", "utf8");
+    const configPath = fs.readFileSync(path.join(getDir(import.meta.url), "..", ".config.txt"), "utf8");
     if (!configPath) {
       throw new Error("No path set");
     }
