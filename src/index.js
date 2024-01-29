@@ -1,18 +1,26 @@
 import { randomizeTeams } from "./randomizeTeams.js";
-import players from "./config.js";
 import argv from "minimist";
 import Fuse from "fuse.js";
+import fs from "fs";
 
-(function () {
+(async function () {
+const configPath = fs.readFileSync("./.path.txt", "utf8");
+const players = await import(configPath.trim())
+.then((module) => module.default)
+.catch((err) => {
+console.log("Use --set-path to update the location of the players file", err);
+})
+
   const args = argv(process.argv.slice(2), {
-    string: ["include", "exclude"],
+    string: ["include", "exclude", "set-path"],
     alias: {
       include: "i",
       exclude: "e",
       help: "h",
+      "set-path": "s",
     },
   });
-  // 1. Help
+  // Help
   if (args.help) {
     console.log(`
       Usage: node index.js [options]
@@ -21,11 +29,18 @@ import Fuse from "fuse.js";
         -i, --include   Comma separated list of players to include
         -e, --exclude   Comma separated list of players to exclude, overrides include
         -h, --help      Show help
+        -s, --set-path  Set file path to players list. \nPlayers list must be a .js file that exports an array of objects with the following properties:\n first, last, tier, available.
     `);
     return;
   }
 
-  // 2. Filter players
+  // Update Players List Path
+  if (args["set-path"]) {
+    fs.writeFileSync("./.path.txt", args["set-path"]);
+    return;
+  }
+
+  // Filter players
   const includedPlayers = args.include ? args.include.split(",") : [];
   const excludedPlayers = args.exclude ? args.exclude.split(",") : [];
 
