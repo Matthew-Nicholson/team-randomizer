@@ -1,15 +1,25 @@
-import { randomizeTeams } from "./randomizeTeams.js";
+import fs from "fs";
 import argv from "minimist";
 import Fuse from "fuse.js";
-import fs from "fs";
+import { randomizeTeams } from "./randomizeTeams.js";
+import { helpMenu } from "./helpMenu.js";
+import { updatePath } from "./updatePath.js";
+import { printTeams } from "./printTeams.js";
 
 (async function () {
-const configPath = fs.readFileSync("./.path.txt", "utf8");
-const players = await import(configPath.trim())
-.then((module) => module.default)
-.catch((err) => {
-console.log("Use --set-path to update the location of the players file", err);
-})
+  let players;
+  try {
+    const configPath = fs.readFileSync("./.path.txt", "utf8");
+    if (!configPath) {
+      throw new Error("No path set");
+    }
+    players = await import(configPath.trim()).then((module) => module.default);
+    if (!players) {
+      throw new Error("No players found");
+    }
+  } catch (error) {
+    console.log(error, ": Use set-path to set the path to your players list");
+  }
 
   const args = argv(process.argv.slice(2), {
     string: ["include", "exclude", "set-path"],
@@ -20,24 +30,13 @@ console.log("Use --set-path to update the location of the players file", err);
       "set-path": "s",
     },
   });
-  // Help
-  if (args.help) {
-    console.log(`
-      Usage: node index.js [options]
 
-      Options:
-        -i, --include   Comma separated list of players to include
-        -e, --exclude   Comma separated list of players to exclude, overrides include
-        -h, --help      Show help
-        -s, --set-path  Set file path to players list. \nPlayers list must be a .js file that exports an array of objects with the following properties:\n first, last, tier, available.
-    `);
-    return;
+  if (args.help) {
+    return helpMenu();
   }
 
-  // Update Players List Path
   if (args["set-path"]) {
-    fs.writeFileSync("./.path.txt", args["set-path"]);
-    return;
+    return updatePath(args["set-path"]);
   }
 
   // Filter players
@@ -68,7 +67,6 @@ console.log("Use --set-path to update the location of the players file", err);
     return result[0] ? result[0].item : null;
   });
 
-  // Turn all included matches available to true
   const playersWithAddedIncludes = players.map((player) => {
     const includedMatch = includedMatches.find(
       (match) =>
@@ -82,7 +80,7 @@ console.log("Use --set-path to update the location of the players file", err);
     }
     return player;
   });
-  // Turn all excluded matches availble to false
+
   const playersRemovingExcludes = playersWithAddedIncludes.map((player) => {
     const excludedMatch = excludedMatches.find(
       (match) =>
@@ -97,26 +95,11 @@ console.log("Use --set-path to update the location of the players file", err);
     return player;
   });
 
-  // New array of available players
   const playersToPair = playersRemovingExcludes.filter(
     (player) => player.available
   );
 
-  // Randomize teams
   const { teamWhite, teamBlack } = randomizeTeams(playersToPair);
 
-  // Print teams
-  console.log(`
-  Team White:\n${teamWhite
-    .map((player) => `${player.first} ${player.last}`)
-    .sort()
-    .join("\n")
-    .trimStart()}
-
-  Team Black:\n${teamBlack
-    .map((player) => `${player.first} ${player.last}`)
-    .sort()
-    .join("\n")
-    .trimStart()}
-`);
+  printTeams(teamWhite, teamBlack);
 })();
