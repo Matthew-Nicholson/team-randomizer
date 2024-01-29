@@ -24,9 +24,11 @@ import { printTeams } from "./printTeams.js";
   const args = argv(process.argv.slice(2), {
     string: ["include", "exclude", "set-path"],
     alias: {
+      "add-player": "a",
       include: "i",
       exclude: "e",
       help: "h",
+      "remove-player": "r",
       "set-path": "s",
     },
   });
@@ -37,6 +39,16 @@ import { printTeams } from "./printTeams.js";
 
   if (args["set-path"]) {
     return updatePath(args["set-path"]);
+  }
+
+  if (args["add-player"]) {
+    // TODO
+    return;
+  }
+
+  if (args["remove-player"]) {
+    // TODO
+    return;
   }
 
   // Filter players
