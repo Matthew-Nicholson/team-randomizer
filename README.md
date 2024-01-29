@@ -25,12 +25,12 @@ Create a config file outlining the people to schedule. It should export default 
 type Player = {
   first: string;
   last: string;
-  tier: number;
+  tier: number; // 1, 2, or 3
   available: boolean;
 };
 ```
 
-### Example:
+#### Example:
 ```
 // config.js
 
