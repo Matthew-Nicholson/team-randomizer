@@ -30,6 +30,16 @@ type Player = {
 };
 ```
 
+### Example:
+```
+// config.js
+
+export default [
+  {first: 'Foo', last: 'Bar', tier: 1, available: true},
+  ...etc
+]
+```
+
 Tell the randomizer where your config file is.
 `node team-randomizer --set-path ./path-to-file.js`
 
